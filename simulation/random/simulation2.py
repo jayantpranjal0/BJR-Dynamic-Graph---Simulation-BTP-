@@ -11,7 +11,6 @@ def tuple_key_to_str(key):
 
 class BJRGraphSimulation:
     def __init__(self, p, steps, new_nodes_param, initial_nodes=10):
-        self.initial_nodes = initial_nodes
         self.p = p  # Probability of adding an edge
         self.steps = steps  # Number of time steps
         self.new_nodes_param = new_nodes_param  # Factor for determining new nodes
@@ -80,25 +79,6 @@ class BJRGraphSimulation:
             self.compute_metrics()
             self.compute_degree_pair_counts()
 
-    def save_parameters(self, output_dir, timestamped_dir):
-        """Save simulation parameters."""
-        parameters = {
-            "p": self.p,
-            "steps": self.steps,
-            "new_nodes_param": self.new_nodes_param,
-            "Final number of nodes": self.total_nodes,
-            "Initial no of nodes": self.initial_nodes
-        }
-
-        params_file_timestamped = os.path.join(timestamped_dir, "parameters.json")
-        params_file_latest = os.path.join(output_dir, "latest", "parameters.json")
-
-        # Save to timestamped and latest directories
-        with open(params_file_timestamped, "w") as pf:
-            json.dump(parameters, pf, indent=4)
-        with open(params_file_latest, "w") as pf:
-            json.dump(parameters, pf, indent=4)
-
     def save_results(self, output_dir):
         # Create timestamped directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -130,9 +110,6 @@ class BJRGraphSimulation:
                 indent=4,
             )
 
-        # Save parameters
-        self.save_parameters(output_dir, timestamped_dir)
-
         # Update latest directory
         for file_name in ["graph.json", "node_degrees.json", "metrics.json", "degree_pair_counts_history.json"]:
             src = os.path.join(timestamped_dir, file_name)
@@ -141,10 +118,38 @@ class BJRGraphSimulation:
                 os.remove(dst)
             os.link(src, dst)
 
+    def plot_parameters(self, output_dir):
+        metrics_file = os.path.join(output_dir, "latest", "metrics.json")
+        with open(metrics_file, "r") as mf:
+            metrics = json.load(mf)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        plots_dir_timestamped = os.path.join(output_dir, timestamp, "plots")
+        plots_dir_latest = os.path.join(output_dir, "latest", "plots")
+
+        os.makedirs(plots_dir_timestamped, exist_ok=True)
+        os.makedirs(plots_dir_latest, exist_ok=True)
+
+        for parameter_name, parameter_values in metrics.items():
+            plt.figure()
+            plt.plot(range(len(parameter_values)), parameter_values, label=parameter_name)
+            plt.xlabel("Time Step")
+            plt.ylabel(parameter_name)
+            plt.title(f"{parameter_name} Over Time")
+            plt.legend()
+            plt.grid(True)
+
+            plot_file_timestamped = os.path.join(plots_dir_timestamped, f"{parameter_name}.png")
+            plot_file_latest = os.path.join(plots_dir_latest, f"{parameter_name}.png")
+
+            plt.savefig(plot_file_timestamped)
+            plt.savefig(plot_file_latest)
+            plt.close()
+
 # Parameters
 p = 0.05  # Probability of edge addition
 steps = 100  # Number of simulation steps
-new_nodes_param = 0.0000001  # Factor for determining new nodes
+new_nodes_param = 0.1  # Factor for determining new nodes
 output_folder = "output"
 initial_nodes = 10  # Initial number of nodes
 
@@ -152,3 +157,4 @@ initial_nodes = 10  # Initial number of nodes
 simulator = BJRGraphSimulation(p, steps, new_nodes_param, initial_nodes)
 simulator.simulate()
 simulator.save_results(output_folder)
+simulator.plot_parameters(output_folder)
