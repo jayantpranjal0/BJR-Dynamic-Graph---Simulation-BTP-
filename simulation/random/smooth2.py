@@ -35,9 +35,29 @@ class BJRGraphSimulation:
             self.compute_total_edges
         ]
         
-        # Initialize the graph with the initial nodes
-        for node in range(self.initial_nodes):
-            self.add_node(node)
+        # # Initialize the graph with the initial nodes
+        # for node in range(self.initial_nodes):
+        #     self.add_node(node)
+        
+
+    def create_graph_with_equal_deg(self):
+        self.__init__(self.p, self.q, self.steps, self.new_nodes_param, self.initial_nodes)
+
+        node_count = 0
+        dummy_node = 0
+        node_count += 1
+        self.add_node(dummy_node)
+
+        
+        for indegree in range(10):
+            for outdegree in range(10):
+                for nindex in range(10):
+                    self.add_node(node_count)
+                    node_count += 1
+                    for i in range(indegree):
+                        self.add_edge(node_count-1, dummy_node)
+                    for i in range(outdegree):
+                        self.add_edge(dummy_node, node_count-1)
 
     def add_node(self, node):
         if node not in self.graph:
@@ -105,17 +125,21 @@ class BJRGraphSimulation:
         self.degree_pair_counts_history.append(degree_pair_counts)
 
     def simulate(self):
+        print("Started")
+        self.create_graph_with_equal_deg()
+        print("Reached")
+        print(self.steps)
         for step in tqdm.tqdm(range(self.steps)):
             # Add a random number of new nodes
-            new_nodes = random.random() * self.total_nodes * self.new_nodes_param
-            for _ in range(math.floor(new_nodes)):
-                new_node = self.total_nodes
-                self.add_node(new_node)
-                self.total_nodes += 1
-            if random.random() < new_nodes - math.floor(new_nodes):
-                new_node = self.total_nodes
-                self.add_node(new_node)
-                self.total_nodes += 1
+            # new_nodes = random.random() * self.total_nodes * self.new_nodes_param
+            # for _ in range(math.floor(new_nodes)):
+            #     new_node = self.total_nodes
+            #     self.add_node(new_node)
+            #     self.total_nodes += 1
+            # if random.random() < new_nodes - math.floor(new_nodes):
+            #     new_node = self.total_nodes
+            #     self.add_node(new_node)
+            #     self.total_nodes += 1
 
             # print(f"Step {step + 1}/{self.steps}: {len(self.graph)} nodes, {sum(len(edges) for edges in self.graph.values())} edges")
             # Iterate over all pairs of nodes
@@ -228,10 +252,10 @@ class BJRGraphSimulation:
 
 
 # # Parameters
-p = 0.05  # Probability of edge addition
-q = 0.9  # Probability of edge removal
-steps = 10  # Number of simulation steps
-new_nodes_param = 0.005  # Factor for determining new nodes
+p = 0.005  # Probability of edge addition
+q = 0.05  # Probability of edge removal
+steps = 1000  # Number of simulation steps
+new_nodes_param = 0  # Factor for determining new nodes
 output_folder = "output"
 initial_nodes = 100  # Initial number of nodes
 
